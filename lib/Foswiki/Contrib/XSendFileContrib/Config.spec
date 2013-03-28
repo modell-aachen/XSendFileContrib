@@ -19,6 +19,44 @@ $Foswiki::cfg{XSendFileContrib}{Header} = 'none';
 # Location that the http server will process internally to send protected files.
 # Leave it to {PubDir} for Lighttpd; use the <code>/protected_files</code> location
 # as configured for an Nginx.
-$Foswiki::cfg{XSendFileContrib}{location} = '';
+$Foswiki::cfg{XSendFileContrib}{Location} = '';
+
+# **PERL**
+# By default view rights of the topic are controlling the access rights to download
+# all attachments on this topic. In some cases you might want to use <i>change</i>
+# rights to protect attachments being downloaded, or assert special DOWNLOAD rights.
+# This can be achieved using an array of {AccessRules} where each rule has got the
+# format 
+# <code>
+# {
+#   web => "regular expression",
+#   topic => "regular expression",
+#   file => "regular expression",
+#   requiredAccess => "VIEW|CHANGE|DOWNLOAD|...",
+# }
+# </code>
+# These rules will be tested in the given order whenever an attachment is requested.
+# When one of the rules matches will the access rights required be checked.
+# Normal VIEW access rights are apploed in case where none of the rules apply.
+# As a special case a rule of the form requiredAccess => "" means that access is granted
+# unconditionally.
+$Foswiki::cfg{XSendFileContrib}{AccessRules} = [
+  {
+      # Example 1: require change rights to download pdfs from Sandbox.TestUpload
+      web => "Sandbox",
+      topic => "TestUpload",
+      file => ".*\.pdf",
+
+      # test change rights
+      requiredAccess => "CHANGE",
+  },
+  {
+      # Example 2: grant access to thumbnails produced by ImagePlugin
+      file => "igp_.*\.[png|gif|jpe?g|bmp|tiff]",
+
+      # grant access unconditionally
+      requiredAccess => "",
+  },
+];
 
 1;

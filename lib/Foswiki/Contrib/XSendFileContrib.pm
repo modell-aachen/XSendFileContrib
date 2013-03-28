@@ -22,8 +22,8 @@ use Encode ();
 use Foswiki::Sandbox ();
 use Foswiki::Func ();
 
-our $VERSION = '1.00';
-our $RELEASE = '1.00';
+our $VERSION = '2.00';
+our $RELEASE = '2.00';
 our $SHORTDESCRIPTION = 'A viewfile replacement to send static files efficiently';
 
 sub xsendfile {
@@ -55,7 +55,7 @@ sub xsendfile {
     $web = join('/', @web);
     unless ($web) {
       $response->status(404);
-      $response->print("404 - not found\n");
+      $response->print("404 - no web found\n");
       return;
     }
 
@@ -68,7 +68,7 @@ sub xsendfile {
 
     unless ($topic) {
       $response->status(404);
-      $response->print("404 - not found\n");
+      $response->print("404 - no topic found\n");
       return;
     }
 
@@ -82,7 +82,7 @@ sub xsendfile {
   # not found
   unless (defined $fileName) {
     $response->status(404);
-    $response->print("404 - not found\n");
+    $response->print("404 - no file found\n");
     return;
   }
 
@@ -97,19 +97,19 @@ sub xsendfile {
   # not found
   unless ($topicObject->existsInStore()) {
     $response->status(404);
-    $response->print("404 - not found\n");
+    $response->print("404 - topic $web.$topic does not exist\n");
     return;
   }
 
   # not found
   unless ($topicObject->hasAttachment($fileName)) {
     $response->status(404);
-    $response->print("404 - not found\n");
+    $response->print("404 - attachment $fileName not found at $web.$topic\n");
     return;
   }
 
   # unauthorized
-  unless ($topicObject->haveAccess('VIEW', $session->{user})) {
+  unless (checkAccess($topicObject, $fileName, $session->{user})) {
     $response->status(401);
     $response->print("401 - access denied\n");
     return;
@@ -136,7 +136,31 @@ sub xsendfile {
   return;
 }
 
-our $types;    # cache content of MimeTypesFileName
+sub checkAccess {
+  my ($topicObject, $fileName, $user) = @_;
+
+
+
+  if (defined $Foswiki::cfg{XSendFileContrib}{AccessRules}) {
+    my $web = $topicObject->web;
+    my $topic = $topicObject->topic;
+    foreach my $rule (@{$Foswiki::cfg{XSendFileContrib}{AccessRules}}) {
+      #print STDERR "rule: web=$rule->{web}, topic=$rule->{topic}, file=$rule->{file}, requiredAccess=$rule->{requiredAccess}\n";
+      if ((!defined($rule->{web}) || $web =~ /^$rule->{web}$/) &&
+          (!defined($rule->{topic}) || $topic =~ /^$rule->{topic}$/) &&
+          (!defined($rule->{file}) || $fileName =~ /^$rule->{file}$/)) {
+
+        return 1 if !defined($rule->{requiredAccess}) || $rule->{requiredAccess} eq "";
+        return $topicObject->haveAccess($rule->{requiredAccess}, $user);
+      }
+    }
+  } 
+
+  # fallback
+  return $topicObject->haveAccess("VIEW", $user);
+}
+
+my $types;    # cache content of MimeTypesFileName
 
 sub suffixToMimeType {
   my ($attachment) = @_;

@@ -113,6 +113,7 @@ One line description, required for extensions repository catalog.
 |  Dependencies: | %$DEPENDENCIES% |
 |  Version: | %$VERSION% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  28 Mar 2013 | implemented {<nop>AccessRules} to allow any kind of access control list for attachments |
 |  1.00: | Initial version |
 |  Home: | http://foswiki.org/Extensions/%TOPIC% |
 |  Support: | http://foswiki.org/Support/%TOPIC% |
