@@ -113,6 +113,7 @@ One line description, required for extensions repository catalog.
 |  Dependencies: | %$DEPENDENCIES% |
 |  Version: | %$VERSION% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  22 May 2013 | using mime-magic as a fallback in case file extensions don't unveil the mime-type |
 |  28 Mar 2013 | implemented {<nop>AccessRules} to allow any kind of access control list for attachments |
 |  1.00: | Initial version |
 |  Home: | http://foswiki.org/Extensions/%TOPIC% |

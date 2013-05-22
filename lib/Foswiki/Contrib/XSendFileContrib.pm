@@ -21,10 +21,13 @@ use warnings;
 use Encode ();
 use Foswiki::Sandbox ();
 use Foswiki::Func ();
+use File::MMagic ();
 
-our $VERSION = '2.00';
-our $RELEASE = '2.00';
+our $VERSION = '2.10';
+our $RELEASE = '2.10';
 our $SHORTDESCRIPTION = 'A viewfile replacement to send static files efficiently';
+our $mimeTypeInfo;
+our $mmagic;
 
 sub xsendfile {
 
@@ -92,6 +95,13 @@ sub xsendfile {
   $fileName = Encode::decode_utf8($fileName);
   $fileName = Foswiki::Sandbox::untaint($fileName, \&Foswiki::Sandbox::validateAttachmentName);
 
+  # invalid 
+  unless (defined $fileName) {
+    $response->status(404);
+    $response->print("404 - file not valid\n");
+    return;
+  }
+
   my $topicObject = Foswiki::Meta->new($session, $web, $topic);
 
   # not found
@@ -122,11 +132,15 @@ sub xsendfile {
   # ok
   my $headerName = $Foswiki::cfg{XSendFileContrib}{Header} || 'X-LIGHTTPD-send-file';
 
+  $fileName = Encode::encode_utf8($fileName);
+  $filePath = Encode::encode_utf8($filePath);
+
+  #print STDERR "fileName=$fileName\n";
   #print STDERR "filePath=$filePath\n";
 
   $response->header(
     -status => 200,
-    -type => suffixToMimeType($fileName),
+    -type => mimeTypeOfFile($filePath),
     -content_disposition => "$dispositionMode; filename=\"$fileName\"",
     $headerName => $filePath,
   );
@@ -160,22 +174,32 @@ sub checkAccess {
   return $topicObject->haveAccess("VIEW", $user);
 }
 
-my $types;    # cache content of MimeTypesFileName
+sub mimeTypeOfFile {
+  my $fileName = shift;
 
-sub suffixToMimeType {
-  my ($attachment) = @_;
-
-  my $mimeType = 'application/octet-stream';
-  if ($attachment && $attachment =~ /\.([^.]+)$/) {
+  if ($fileName && $fileName =~ /\.([^.]+)$/) {
     my $suffix = $1;
-    $types = Foswiki::Func::readFile($Foswiki::cfg{MimeTypesFileName}) unless defined $types;
 
-    if ($types =~ /^([^#]\S*).*?\s$suffix(?:\s|$)/im) {
-      $mimeType = $1;
+    $mimeTypeInfo = Foswiki::Func::readFile($Foswiki::cfg{MimeTypesFileName}) 
+      unless defined $mimeTypeInfo;
+
+    if ($mimeTypeInfo =~ /^([^#]\S*).*?\s$suffix(?:\s|$)/im) {
+      return $1;
     }
   }
 
-  return $mimeType;
+  $mmagic = File::MMagic->new() unless defined $mmagic;
+
+  my $mimeType = $mmagic->checktype_filename($fileName);
+
+  if (defined $mimeType && $mimeType ne "x-system/x-error") {
+    #print STDERR "mmagic says $mimeType to $fileName\n";
+    return $mimeType;
+  }
+
+  #print STDERR "unknown mime type of $fileName\n";
+
+  return 'application/octet-stream';
 }
 
 1;
