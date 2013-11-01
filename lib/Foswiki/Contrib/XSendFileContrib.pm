@@ -21,10 +21,11 @@ use warnings;
 use Encode ();
 use Foswiki::Sandbox ();
 use Foswiki::Func ();
+use Foswiki::Time ();
 use File::MMagic ();
 
-our $VERSION = '2.10';
-our $RELEASE = '2.10';
+our $VERSION = '3.00';
+our $RELEASE = '3.00';
 our $SHORTDESCRIPTION = 'A viewfile replacement to send static files efficiently';
 our $mimeTypeInfo;
 our $mmagic;
@@ -128,22 +129,28 @@ sub xsendfile {
   # construct file path to protected location
   my $location = $Foswiki::cfg{XSendFileContrib}{Location} || $Foswiki::cfg{PubDir};
   my $filePath = $location.'/'.$web.'/'.$topic.'/'.$fileName;
+  my @stat = stat($filePath);
+  my $lastModified = Foswiki::Time::formatTime($stat[9] || $stat[10] || 0, '$http', 'gmtime');
+  my $ifModifiedSince = $request->header('If-Modified-Since') || '';
 
-  # ok
   my $headerName = $Foswiki::cfg{XSendFileContrib}{Header} || 'X-LIGHTTPD-send-file';
 
   $fileName = Encode::encode_utf8($fileName);
   $filePath = Encode::encode_utf8($filePath);
 
-  #print STDERR "fileName=$fileName\n";
-  #print STDERR "filePath=$filePath\n";
-
-  $response->header(
-    -status => 200,
-    -type => mimeTypeOfFile($filePath),
-    -content_disposition => "$dispositionMode; filename=\"$fileName\"",
-    $headerName => $filePath,
-  );
+  if ($lastModified eq $ifModifiedSince) {
+    $response->header(
+      -status => 304,
+    );
+  } else {
+    $response->header(
+      -status => 200,
+      -type => mimeTypeOfFile($filePath),
+      -content_disposition => "$dispositionMode; filename=\"$fileName\"",
+      -last_modified => $lastModified,
+      $headerName => $filePath,
+    );
+  }
 
   #  $response->print("OK");
 
@@ -152,8 +159,6 @@ sub xsendfile {
 
 sub checkAccess {
   my ($topicObject, $fileName, $user) = @_;
-
-
 
   if (defined $Foswiki::cfg{XSendFileContrib}{AccessRules}) {
     my $web = $topicObject->web;
