@@ -24,8 +24,8 @@ use Foswiki::Func ();
 use Foswiki::Time ();
 use File::MMagic ();
 
-our $VERSION = '3.00';
-our $RELEASE = '3.00';
+our $VERSION = '3.02';
+our $RELEASE = '3.02';
 our $SHORTDESCRIPTION = 'A viewfile replacement to send static files efficiently';
 our $mimeTypeInfo;
 our $mmagic;
@@ -94,7 +94,7 @@ sub xsendfile {
 
   $fileName = Foswiki::urlDecode($fileName);
   $fileName = Encode::decode_utf8($fileName);
-  $fileName = Foswiki::Sandbox::untaint($fileName, \&Foswiki::Sandbox::validateAttachmentName);
+  #$fileName = Foswiki::Sandbox::untaint($fileName, \&Foswiki::Sandbox::validateAttachmentName);
 
   # invalid 
   unless (defined $fileName) {
