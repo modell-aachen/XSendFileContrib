@@ -108,11 +108,12 @@ One line description, required for extensions repository catalog.
 -->
 
 |  Author: | Michael Daum |
-|  Copyright &copy;: | 2013, Michael Daum http://michaeldaumconsulting.com |
+|  Copyright &copy;: | 2013-2014, Michael Daum http://michaeldaumconsulting.com |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Dependencies: | %$DEPENDENCIES% |
 |  Version: | %$VERSION% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  18 Mar 2014 | return a proper 404 for invalid filename parameters |
 |  06 Nov 2013 | fixed filenames with spaces not being found |
 |  01 Nov 2013 | added support for if-modified-since http headers |
 |  22 May 2013 | using mime-magic as a fallback in case file extensions don't unveil the mime-type |

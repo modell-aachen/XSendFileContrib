@@ -1,6 +1,6 @@
 # Module of Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2013 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2013-2014 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@ use Foswiki::Func ();
 use Foswiki::Time ();
 use File::MMagic ();
 
-our $VERSION = '3.02';
-our $RELEASE = '3.02';
+our $VERSION = '3.03';
+our $RELEASE = '3.03';
 our $SHORTDESCRIPTION = 'A viewfile replacement to send static files efficiently';
 our $mimeTypeInfo;
 our $mmagic;
@@ -84,7 +84,7 @@ sub xsendfile {
   }
 
   # not found
-  unless (defined $fileName) {
+  if (!defined($fileName) || $fileName eq '') {
     $response->status(404);
     $response->print("404 - no file found\n");
     return;
