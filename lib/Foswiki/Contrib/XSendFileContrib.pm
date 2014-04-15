@@ -24,8 +24,8 @@ use Foswiki::Func ();
 use Foswiki::Time ();
 use File::MMagic ();
 
-our $VERSION = '3.03';
-our $RELEASE = '3.03';
+our $VERSION = '3.04';
+our $RELEASE = '3.04';
 our $SHORTDESCRIPTION = 'A viewfile replacement to send static files efficiently';
 our $mimeTypeInfo;
 our $mmagic;
@@ -95,6 +95,7 @@ sub xsendfile {
   $fileName = Foswiki::urlDecode($fileName);
   $fileName = Encode::decode_utf8($fileName);
   #$fileName = Foswiki::Sandbox::untaint($fileName, \&Foswiki::Sandbox::validateAttachmentName);
+  $fileName = sanitizeAttachmentName($fileName);;
 
   # invalid 
   unless (defined $fileName) {
@@ -113,6 +114,7 @@ sub xsendfile {
   }
 
   # not found
+  
   unless ($topicObject->hasAttachment($fileName)) {
     $response->status(404);
     $response->print("404 - attachment $fileName not found at $web.$topic\n");
@@ -205,6 +207,16 @@ sub mimeTypeOfFile {
   #print STDERR "unknown mime type of $fileName\n";
 
   return 'application/octet-stream';
+}
+
+sub sanitizeAttachmentName {
+  my $fileName = shift;
+
+  $fileName =~ s{[\\/]+$}{};    # Get rid of trailing slash/backslash (unlikely)
+  $fileName =~ s!^.*[\\/]!!;    # Get rid of leading directory components
+  $fileName =~ s/[\*?~^\$@%`"'&;|<>\[\]#\x00-\x1f\(\)]//g; # Get rid of a subset of Namefilter
+
+  return Foswiki::Sandbox::untaintUnchecked($fileName);
 }
 
 1;
