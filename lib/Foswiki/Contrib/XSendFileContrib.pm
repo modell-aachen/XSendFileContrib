@@ -24,8 +24,8 @@ use Foswiki::Func ();
 use Foswiki::Time ();
 use File::MMagic ();
 
-our $VERSION = '3.04';
-our $RELEASE = '3.04';
+our $VERSION = '3.05';
+our $RELEASE = '3.05';
 our $SHORTDESCRIPTION = 'A viewfile replacement to send static files efficiently';
 our $mimeTypeInfo;
 our $mmagic;
@@ -130,7 +130,8 @@ sub xsendfile {
 
   # construct file path to protected location
   my $location = $Foswiki::cfg{XSendFileContrib}{Location} || $Foswiki::cfg{PubDir};
-  my $filePath = $location.'/'.$web.'/'.$topic.'/'.$fileName;
+  my $fileLocation = $location.'/'.$web.'/'.$topic.'/'.$fileName;
+  my $filePath = $Foswiki::cfg{PubDir}.'/'.$web.'/'.$topic.'/'.$fileName;
   my @stat = stat($filePath);
   my $lastModified = Foswiki::Time::formatTime($stat[9] || $stat[10] || 0, '$http', 'gmtime');
   my $ifModifiedSince = $request->header('If-Modified-Since') || '';
@@ -138,7 +139,7 @@ sub xsendfile {
   my $headerName = $Foswiki::cfg{XSendFileContrib}{Header} || 'X-LIGHTTPD-send-file';
 
   $fileName = Encode::encode_utf8($fileName);
-  $filePath = Encode::encode_utf8($filePath);
+  $fileLocation = Encode::encode_utf8($fileLocation);
 
   if ($lastModified eq $ifModifiedSince) {
     $response->header(
@@ -150,7 +151,7 @@ sub xsendfile {
       -type => mimeTypeOfFile($filePath),
       -content_disposition => "$dispositionMode; filename=\"$fileName\"",
       -last_modified => $lastModified,
-      $headerName => $filePath,
+      $headerName => $fileLocation,
     );
   }
 
