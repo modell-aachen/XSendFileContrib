@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1357654251" format="1.1" reprev="3" version="3"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1409330875" format="1.1"  version="1"}%
 ---+!! %TOPIC%
 %TOC%
 
@@ -113,6 +113,7 @@ One line description, required for extensions repository catalog.
 |  Dependencies: | %$DEPENDENCIES% |
 |  Version: | %$VERSION% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  29 Aug 2014 | improved decoding and untainting url components |
 |  28 May 2014 | fixed file check on wrong location |
 |  15 Apr 2014 | untaint attachment filenames |
 |  18 Mar 2014 | return a proper 404 for invalid filename parameters |

@@ -24,11 +24,20 @@ use Foswiki::Func ();
 use Foswiki::Time ();
 use File::MMagic ();
 
-our $VERSION = '3.05';
-our $RELEASE = '3.05';
+our $VERSION = '3.10';
+our $RELEASE = '3.10';
 our $SHORTDESCRIPTION = 'A viewfile replacement to send static files efficiently';
 our $mimeTypeInfo;
 our $mmagic;
+
+sub _decodeUntaint {
+  my ($text, $sub) = @_;
+
+  $text = Encode::decode_utf8($text);
+  $text = Foswiki::Sandbox::untaint($text, $sub) if $sub;
+
+  return $text;
+}
 
 sub xsendfile {
 
@@ -41,46 +50,48 @@ sub xsendfile {
   my $fileName = $request->param('filename');
   my $dispositionMode = $request->param('mode') || 'inline'; 
 
+  my $pathInfo = $request->path_info();
+  my @path = split(/\/+/, $pathInfo);
+  shift(@path) unless $path[0];
+
+  # work out the web, topic and filename
+  my @web;
+  my $pel = _decodeUntaint($path[0], \&Foswiki::Sandbox::validateWebName);
+
+  while ($pel && Foswiki::Func::webExists(join('/', @web, $pel))) {
+    push(@web, $pel);
+    shift(@path);
+    $pel = _decodeUntaint($path[0], \&Foswiki::Sandbox::validateWebName);
+  }
+
+  $web = join('/', @web);
+  unless ($web) {
+    $response->status(404);
+    $response->print("404 - no web found\n");
+    return;
+  }
+
+  # Must set the web name, otherwise plugins may barf if
+  # they try to manipulate the topic context when an oops is generated.
+  $session->{webName} = $web;
+
+  # The next element on the path has to be the topic name
+  $topic = _decodeUntaint(shift @path, \&Foswiki::Sandbox::validateTopicName);
+
+  unless ($topic) {
+    $response->status(404);
+    $response->print("404 - no topic found\n");
+    return;
+  }
+
+  # See comment about webName above
+  $session->{topicName} = $topic;
+
   unless (defined $fileName) {
-    my $pathInfo = $request->path_info();
-    my @path = split(/\/+/, $pathInfo);
-    shift(@path) unless $path[0];
-
-    # work out the web, topic and filename
-    my @web;
-    my $pel = Foswiki::Sandbox::untaint($path[0], \&Foswiki::Sandbox::validateWebName);
-
-    while ($pel && Foswiki::Func::webExists(join('/', @web, $pel))) {
-      push(@web, $pel);
-      shift(@path);
-      $pel = Foswiki::Sandbox::untaint($path[0], \&Foswiki::Sandbox::validateWebName);
-    }
-
-    $web = join('/', @web);
-    unless ($web) {
-      $response->status(404);
-      $response->print("404 - no web found\n");
-      return;
-    }
-
-    # Must set the web name, otherwise plugins may barf if
-    # they try to manipulate the topic context when an oops is generated.
-    $session->{webName} = $web;
-
-    # The next element on the path has to be the topic name
-    $topic = Foswiki::Sandbox::untaint(shift(@path), \&Foswiki::Sandbox::validateTopicName);
-
-    unless ($topic) {
-      $response->status(404);
-      $response->print("404 - no topic found\n");
-      return;
-    }
-
-    # See comment about webName above
-    $session->{topicName} = $topic;
-
     # What's left in the path is the attachment name.
     $fileName = join('/', @path);
+  } else {
+    $fileName = Foswiki::urlDecode($fileName);
   }
 
   # not found
@@ -90,12 +101,9 @@ sub xsendfile {
     return;
   }
 
-  #print STDERR "web=$web, topic=$topic, fileName=$fileName\n";
+  $fileName = _decodeUntaint($fileName, \&sanitizeAttachmentName);
 
-  $fileName = Foswiki::urlDecode($fileName);
-  $fileName = Encode::decode_utf8($fileName);
-  #$fileName = Foswiki::Sandbox::untaint($fileName, \&Foswiki::Sandbox::validateAttachmentName);
-  $fileName = sanitizeAttachmentName($fileName);;
+  #print STDERR "web=$web, topic=$topic, fileName=$fileName\n";
 
   # invalid 
   unless (defined $fileName) {

@@ -1,6 +1,6 @@
 # ---+ Extensions
 # ---++ XSendFileContrib
-# **PERL H**
+# **PERL HIDDEN**
 # This setting is required to enable executing the xsendfile service from the bin directory
 $Foswiki::cfg{SwitchBoard}{xsendfile} = ['Foswiki::Contrib::XSendFileContrib', 'xsendfile', {xsendfile => 1}];
 
@@ -42,19 +42,16 @@ $Foswiki::cfg{XSendFileContrib}{Location} = '';
 # unconditionally.
 $Foswiki::cfg{XSendFileContrib}{AccessRules} = [
   {
-      # Example 1: require change rights to download pdfs from Sandbox.TestUpload
       web => "Sandbox",
       topic => "TestUpload",
       file => ".*\.pdf",
 
-      # test change rights
       requiredAccess => "CHANGE",
   },
   {
-      # Example 2: grant access to thumbnails produced by ImagePlugin
+
       file => "igp_.*\.[png|gif|jpe?g|bmp|tiff]",
 
-      # grant access unconditionally
       requiredAccess => "",
   },
 ];
