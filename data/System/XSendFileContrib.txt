@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1409330875" format="1.1"  version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1437154671" format="1.1"  version="1"}%
 ---+!! %TOPIC%
 %TOC%
 
@@ -94,8 +94,16 @@ location /protected_files {
 
 ---++ Configuring Apache2
 Apache itself requires an additional simple module that processes an *X-Sendfile* header.
+In a classical Foswiki Apache2 installation you have to modify your web server configuration as follows:
+
+<verbatim>
+XSendFile on
+XSendFilePath /path/to/pub
+RewriteRule ^/+pub/+(.*)$  /bin/xsendfile/$1 [L,PT]
+</verbatim>
 
 See https://tn123.org/mod_xsendfile/ for more information on how to compile =mod_xsendfile= and how to configure apache.
+
 ---++ Installation
 %$INSTALL_INSTRUCTIONS%
 
@@ -108,11 +116,12 @@ One line description, required for extensions repository catalog.
 -->
 
 |  Author: | Michael Daum |
-|  Copyright &copy;: | 2013-2014, Michael Daum http://michaeldaumconsulting.com |
+|  Copyright &copy;: | 2013-2015, Michael Daum http://michaeldaumconsulting.com |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Dependencies: | %$DEPENDENCIES% |
 |  Version: | %$VERSION% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  17 Jul 2015 | added support for Foswiki-2.0 |
 |  29 Aug 2014 | improved decoding and untainting url components |
 |  28 May 2014 | fixed file check on wrong location |
 |  15 Apr 2014 | untaint attachment filenames |

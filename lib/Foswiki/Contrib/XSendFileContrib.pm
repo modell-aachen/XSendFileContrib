@@ -1,6 +1,6 @@
 # Module of Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2013-2014 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2013-2015 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@ use Foswiki::Func ();
 use Foswiki::Time ();
 use File::MMagic ();
 
-our $VERSION = '3.10';
-our $RELEASE = '3.10';
+our $VERSION = '4.00';
+our $RELEASE = '17 Jul 2015';
 our $SHORTDESCRIPTION = 'A viewfile replacement to send static files efficiently';
 our $mimeTypeInfo;
 our $mmagic;
@@ -146,8 +146,10 @@ sub xsendfile {
 
   my $headerName = $Foswiki::cfg{XSendFileContrib}{Header} || 'X-LIGHTTPD-send-file';
 
-  $fileName = Encode::encode_utf8($fileName);
-  $fileLocation = Encode::encode_utf8($fileLocation);
+  unless ($Foswiki::UNICODE) {
+    $fileName = Encode::encode_utf8($fileName);
+    $fileLocation = Encode::encode_utf8($fileLocation);
+  }
 
   if ($lastModified eq $ifModifiedSince) {
     $response->header(
@@ -175,7 +177,7 @@ sub checkAccess {
     my $web = $topicObject->web;
     my $topic = $topicObject->topic;
     foreach my $rule (@{$Foswiki::cfg{XSendFileContrib}{AccessRules}}) {
-      #print STDERR "rule: web=$rule->{web}, topic=$rule->{topic}, file=$rule->{file}, requiredAccess=$rule->{requiredAccess}\n";
+      #print STDERR "rule: web=".($rule->{web}||'').", topic=".($rule->{topic}||'').", file=".($rule->{file}||'').", requiredAccess=".($rule->{requiredAccess}||'')."\n";
       if ((!defined($rule->{web}) || $web =~ /^$rule->{web}$/) &&
           (!defined($rule->{topic}) || $topic =~ /^$rule->{topic}$/) &&
           (!defined($rule->{file}) || $fileName =~ /^$rule->{file}$/)) {
@@ -223,7 +225,7 @@ sub sanitizeAttachmentName {
 
   $fileName =~ s{[\\/]+$}{};    # Get rid of trailing slash/backslash (unlikely)
   $fileName =~ s!^.*[\\/]!!;    # Get rid of leading directory components
-  $fileName =~ s/[\*?~^\$@%`"'&;|<>\[\]#\x00-\x1f\(\)]//g; # Get rid of a subset of Namefilter
+  $fileName =~ s/[\*?~^\$@%`"'&;|<>\[\]#\x00-\x1f]//g; # Get rid of a subset of Namefilter
 
   return Foswiki::Sandbox::untaintUnchecked($fileName);
 }
