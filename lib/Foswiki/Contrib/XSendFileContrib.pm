@@ -136,6 +136,15 @@ sub xsendfile {
     return;
   }
 
+  # check for rev parameter and fallback if not current
+  my $rev = $request->param('rev');
+  if(defined $rev) {
+    my $fileMeta = $topicObject->get('FILEATTACHMENT', $fileName);
+    if($fileMeta && $fileMeta->{version} > $rev) {
+      return viewfileFallback($session, $topicObject, $fileName, $rev);
+    }
+  }
+
   # construct file path to protected location
   my $location = $Foswiki::cfg{XSendFileContrib}{Location} || $Foswiki::cfg{PubDir};
   my $fileLocation = $location.'/'.$web.'/'.$topic.'/'.$fileName;
@@ -168,6 +177,30 @@ sub xsendfile {
   #  $response->print("OK");
 
   return;
+}
+
+# This is a fallback that behaves like the old viewfile mechanism. In fact most
+# of it is directly copied from there.
+sub viewfileFallback {
+  my ($session, $topicObject, $fileName, $rev) = @_;
+
+  my $fh = $topicObject->openAttachment( $fileName, '<', version => $rev );
+
+  my $type = mimeTypeOfFile($fileName);
+
+  #re-set to 200, in case this was a 404 or other redirect
+  $session->{response}->status(200);
+
+  $session->{response}->header(
+      -type                => $type,
+      -content_disposition => "inline; filename=\"$fileName\""
+  );
+
+  local $/;
+
+  # SMELL: Maybe could be less memory hungry if we could
+  # set the response body to the file handle.
+  $session->{response}->print(<$fh>);
 }
 
 sub checkAccess {
