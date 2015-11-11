@@ -141,7 +141,7 @@ sub xsendfile {
   if(defined $rev) {
     $topicObject->loadVersion() unless $topicObject->getLoadedRev();
     my $fileMeta = $topicObject->get('FILEATTACHMENT', $fileName);
-    if($fileMeta && $fileMeta->{version} > $rev) {
+    if(!$fileMeta || !defined($fileMeta->{version}) || $fileMeta->{version} > $rev ) {
       return viewfileFallback($session, $topicObject, $fileName, $rev);
     }
   }
