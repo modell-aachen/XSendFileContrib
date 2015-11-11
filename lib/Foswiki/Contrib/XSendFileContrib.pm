@@ -139,6 +139,7 @@ sub xsendfile {
   # check for rev parameter and fallback if not current
   my $rev = $request->param('rev');
   if(defined $rev) {
+    $topicObject->loadVersion() unless $topicObject->getLoadedRev();
     my $fileMeta = $topicObject->get('FILEATTACHMENT', $fileName);
     if($fileMeta && $fileMeta->{version} > $rev) {
       return viewfileFallback($session, $topicObject, $fileName, $rev);
