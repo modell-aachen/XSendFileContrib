@@ -201,7 +201,7 @@ sub viewfileFallback {
 
   # SMELL: Maybe could be less memory hungry if we could
   # set the response body to the file handle.
-  $session->{response}->print(<$fh>);
+  $session->{response}->body(<$fh>);
 }
 
 sub checkAccess {
