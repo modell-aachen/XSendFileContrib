@@ -138,6 +138,7 @@ sub xsendfile {
   # check for rev parameter and fallback if not current
   my $rev = $request->param('rev');
   if(defined $rev) {
+    $rev = Foswiki::Store::cleanUpRevID($rev);
     $topicObject->loadVersion() unless $topicObject->getLoadedRev();
     my $fileMeta = $topicObject->get('FILEATTACHMENT', $fileName);
     if(!$fileMeta || !defined($fileMeta->{version}) || $fileMeta->{version} > $rev ) {
