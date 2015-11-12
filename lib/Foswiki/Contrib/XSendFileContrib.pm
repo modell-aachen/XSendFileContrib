@@ -90,8 +90,9 @@ sub xsendfile {
   unless (defined $fileName) {
     # What's left in the path is the attachment name.
     $fileName = join('/', @path);
+    $fileName = _decodeUntaint($fileName, \&sanitizeAttachmentName) if defined($fileName);
   } else {
-    $fileName = Foswiki::urlDecode($fileName);
+    $fileName = sanitizeAttachmentName($fileName);
   }
 
   # not found
@@ -100,8 +101,6 @@ sub xsendfile {
     $response->print("404 - no file found\n");
     return;
   }
-
-  $fileName = _decodeUntaint($fileName, \&sanitizeAttachmentName);
 
   #print STDERR "web=$web, topic=$topic, fileName=$fileName\n";
 
