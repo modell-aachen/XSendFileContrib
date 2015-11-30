@@ -90,8 +90,9 @@ sub xsendfile {
   unless (defined $fileName) {
     # What's left in the path is the attachment name.
     $fileName = join('/', @path);
+    $fileName = _decodeUntaint($fileName, \&sanitizeAttachmentName) if defined($fileName);
   } else {
-    $fileName = Foswiki::urlDecode($fileName);
+    $fileName = sanitizeAttachmentName($fileName);
   }
 
   # not found
@@ -100,8 +101,6 @@ sub xsendfile {
     $response->print("404 - no file found\n");
     return;
   }
-
-  $fileName = _decodeUntaint($fileName, \&sanitizeAttachmentName);
 
   #print STDERR "web=$web, topic=$topic, fileName=$fileName\n";
 
@@ -139,8 +138,10 @@ sub xsendfile {
   # check for rev parameter and fallback if not current
   my $rev = $request->param('rev');
   if(defined $rev) {
+    $rev = Foswiki::Store::cleanUpRevID($rev);
+    $topicObject->loadVersion() unless $topicObject->getLoadedRev();
     my $fileMeta = $topicObject->get('FILEATTACHMENT', $fileName);
-    if($fileMeta && $fileMeta->{version} > $rev) {
+    if(!$fileMeta || !defined($fileMeta->{version}) || $fileMeta->{version} > $rev ) {
       return viewfileFallback($session, $topicObject, $fileName, $rev);
     }
   }
@@ -200,7 +201,7 @@ sub viewfileFallback {
 
   # SMELL: Maybe could be less memory hungry if we could
   # set the response body to the file handle.
-  $session->{response}->print(<$fh>);
+  $session->{response}->body(<$fh>);
 }
 
 sub checkAccess {
