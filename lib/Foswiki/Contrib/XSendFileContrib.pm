@@ -172,6 +172,7 @@ sub xsendfile {
       -content_disposition => "$dispositionMode; filename=\"$fileName\"",
       -last_modified => $lastModified,
       $headerName => $fileLocation,
+      -Cache_Control => 'max-age=0,must-revalidate,no-cache'
     );
   }
 
