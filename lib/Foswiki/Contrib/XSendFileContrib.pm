@@ -139,10 +139,12 @@ sub xsendfile {
   my $rev = $request->param('rev');
   if(defined $rev) {
     $rev = Foswiki::Store::cleanUpRevID($rev);
-    $topicObject->loadVersion() unless $topicObject->getLoadedRev();
-    my $fileMeta = $topicObject->get('FILEATTACHMENT', $fileName);
-    if(!$fileMeta || !defined($fileMeta->{version}) || $fileMeta->{version} > $rev ) {
-      return viewfileFallback($session, $topicObject, $fileName, $rev);
+    if($rev) {
+      $topicObject->loadVersion() unless $topicObject->getLoadedRev();
+      my $fileMeta = $topicObject->get('FILEATTACHMENT', $fileName);
+      if(!$fileMeta || !defined($fileMeta->{version}) || $fileMeta->{version} > $rev ) {
+        return viewfileFallback($session, $topicObject, $fileName, $rev);
+      }
     }
   }
 
@@ -172,6 +174,7 @@ sub xsendfile {
       -content_disposition => "$dispositionMode; filename=\"$fileName\"",
       -last_modified => $lastModified,
       $headerName => $fileLocation,
+      -Cache_Control => 'max-age=0,must-revalidate,no-cache'
     );
   }
 
