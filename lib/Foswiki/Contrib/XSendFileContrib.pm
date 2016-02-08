@@ -25,7 +25,7 @@ use Foswiki::Time ();
 use File::MMagic ();
 
 our $VERSION = '4.00';
-our $RELEASE = '17 Jul 2015';
+our $RELEASE = '4.00';
 our $SHORTDESCRIPTION = 'A viewfile replacement to send static files efficiently';
 our $mimeTypeInfo;
 our $mmagic;
