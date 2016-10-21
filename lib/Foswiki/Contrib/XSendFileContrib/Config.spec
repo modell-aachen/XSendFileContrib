@@ -2,7 +2,11 @@
 # ---++ XSendFileContrib
 # **PERL HIDDEN**
 # This setting is required to enable executing the xsendfile service from the bin directory
-$Foswiki::cfg{SwitchBoard}{xsendfile} = ['Foswiki::Contrib::XSendFileContrib', 'xsendfile', {xsendfile => 1}];
+$Foswiki::cfg{SwitchBoard}{xsendfile} = {
+  package => 'Foswiki::Contrib::XSendFileContrib',
+  function => 'xsendfile',
+  context => {xsendfile => 1},
+};
 
 # **SELECT none,X-Sendfile,X-LIGHTTPD-send-file,X-Accel-Redirect**
 # Enable efficient delivery of static files 
