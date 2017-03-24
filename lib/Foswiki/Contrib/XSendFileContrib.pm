@@ -23,6 +23,7 @@ use Foswiki::Sandbox ();
 use Foswiki::Func ();
 use Foswiki::Time ();
 use File::MMagic ();
+use Foswiki::Store::PlainFile ();
 
 our $VERSION = '4.00';
 our $RELEASE = '4.00';
@@ -71,12 +72,13 @@ sub xsendfile {
     return;
   }
 
+  # The next element on the path has to be the topic name
+  $topic = _decodeUntaint(shift @path, \&Foswiki::Sandbox::validateTopicName);
+  $web = Foswiki::Store::PlainFile::_getVirtualWeb($web, $topic);
+
   # Must set the web name, otherwise plugins may barf if
   # they try to manipulate the topic context when an oops is generated.
   $session->{webName} = $web;
-
-  # The next element on the path has to be the topic name
-  $topic = _decodeUntaint(shift @path, \&Foswiki::Sandbox::validateTopicName);
 
   unless ($topic) {
     $response->status(404);
