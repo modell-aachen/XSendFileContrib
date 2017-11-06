@@ -132,8 +132,15 @@ sub xsendfile {
 
   # unauthorized
   unless (checkAccess($topicObject, $fileName, $session->{user})) {
-    $response->status(401);
-    $response->print("401 - access denied\n");
+    if(Foswiki::Func::isGuest()) {
+      # This will generate a login box
+      require Foswiki::AccessControlException;
+      throw Foswiki::AccessControlException( $request->action, $session->{user},
+        $web, $topic, 'attachment requires authentication' );
+    } else {
+      $response->status(401);
+      $response->print("401 - access denied\n");
+    }
     return;
   }
 
