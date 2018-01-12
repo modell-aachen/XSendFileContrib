@@ -180,7 +180,7 @@ sub xsendfile {
     $response->header(
       -status => 200,
       -type => mimeTypeOfFile($filePath),
-      -content_disposition => "$dispositionMode; filename=\"$fileName\"",
+      -content_disposition => "$dispositionMode; filename=\"$fileName\"; filename*=UTF-8''".Foswiki::urlEncode($fileName),
       -last_modified => $lastModified,
       $headerName => $fileLocation,
       -Cache_Control => 'max-age=0,must-revalidate,no-cache'
