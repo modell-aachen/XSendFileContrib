@@ -172,6 +172,13 @@ sub xsendfile {
     $fileLocation = Encode::encode_utf8($fileLocation);
   }
 
+  my $presentedName = $fileName;
+  $topicObject->loadVersion() unless $topicObject->getLoadedRev();
+  my $fileMeta = $topicObject->get('FILEATTACHMENT', $fileName);
+  if($fileMeta && defined $fileMeta->{presented_name} && $fileMeta->{presented_name} ne '') {
+      $presentedName = $fileMeta->{presented_name};
+  }
+
   if ($lastModified eq $ifModifiedSince) {
     $response->header(
       -status => 304,
@@ -180,7 +187,7 @@ sub xsendfile {
     $response->header(
       -status => 200,
       -type => mimeTypeOfFile($filePath),
-      -content_disposition => "$dispositionMode; filename=\"$fileName\"; filename*=UTF-8''".Foswiki::urlEncode($fileName),
+      -content_disposition => "$dispositionMode; filename=\"$presentedName\"; filename*=UTF-8''".Foswiki::urlEncode($presentedName),
       -last_modified => $lastModified,
       $headerName => $fileLocation,
       -Cache_Control => 'max-age=0,must-revalidate,no-cache'
