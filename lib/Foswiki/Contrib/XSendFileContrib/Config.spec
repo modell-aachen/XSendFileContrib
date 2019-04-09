@@ -9,7 +9,7 @@ $Foswiki::cfg{SwitchBoard}{xsendfile} = {
 };
 
 # **SELECT none,X-Sendfile,X-LIGHTTPD-send-file,X-Accel-Redirect**
-# Enable efficient delivery of static files 
+# Enable efficient delivery of static files
 # using the xsendfile feature available in apache, nginx and lighttpd.
 # Use <ul>
 # <li>X-Sendfile for Apache2 </li>
@@ -17,7 +17,7 @@ $Foswiki::cfg{SwitchBoard}{xsendfile} = {
 # <li>X-Accel-Redirect for Nginx</li>
 # </ul>
 # Note that you will need to configure your http server accordingly.
-$Foswiki::cfg{XSendFileContrib}{Header} = 'none';
+$Foswiki::cfg{XSendFileContrib}{Header} = 'X-Sendfile';
 
 # **PATH**
 # Location that the http server will process internally to send protected files.
@@ -30,7 +30,7 @@ $Foswiki::cfg{XSendFileContrib}{Location} = '';
 # all attachments on this topic. In some cases you might want to use <i>change</i>
 # rights to protect attachments being downloaded, or assert special DOWNLOAD rights.
 # This can be achieved using an array of {AccessRules} where each rule has got the
-# format 
+# format
 # <code>
 # {
 #   web => "regular expression",
